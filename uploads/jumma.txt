@@ -1,0 +1,10 @@
+Good morning,
+
+
+There was a delay in the data warehouse data refresh today. We have opened an incident with the service desk, and JDI IT is currently reviewing the issue. The ETA for resolution is now expected to be at the end of the day. As a result, the Power BI report will not include yesterday's data. Once the issue is resolved, we will make an announcement.
+
+
+Additionally, this delay is related to the D365 upgrades we had last week.
+
+
+Thank you for your patience and understanding.

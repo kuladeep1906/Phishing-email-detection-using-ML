@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishing Email Detector</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Chart.js Library -->
+
+    <style>
+        /* 🌙 Dark Mode Styles */
+        .dark-mode {
+            background: linear-gradient(-45deg, #121212, #1e1e1e, #282828, #333);
+            color: #f1f1f1;
+        }
+
+        .dark-mode .container {
+            background: rgba(30, 30, 30, 0.95);
+            color: #f1f1f1;
+            box-shadow: 0px 6px 15px rgba(255, 255, 255, 0.1);
+        }
+
+        .dark-mode h2 {
+            background: linear-gradient(90deg, #002855, #0056b3);
+            color: #ffffff;
+        }
+
+        .dark-mode .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .dark-mode .btn-details {
+            background: #0056b3;
+            color: white;
+        }
+
+        .dark-mode .safe {
+            background: #164c16;
+            color: #b8f7b8;
+        }
+
+        .dark-mode .phishing {
+            background: #5a0e0e;
+            color: #ffbbbb;
+        }
+
+        .dark-mode .details, .dark-mode .list-group-item {
+            background: #222;
+            color: #f1f1f1;
+            border-color: #444;
+        }
+
+        .dark-mode textarea, .dark-mode input[type="file"] {
+            background-color: #333;
+            color: white;
+            border: 1px solid #555;
+        }
+
+
+
+        /* 🌟 Animated Background */
+        body {
+            background: linear-gradient(-45deg, #1e3c72, #2a5298, #0f2027, #00c6ff);
+            background-size: 400% 400%;
+            animation: backgroundAnimation 10s infinite alternate;
+            color: #333;
+            font-family: 'Arial', sans-serif;
+        }
+
+        /* 🔄 Background Animation */
+        @keyframes backgroundAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 📦 Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 50px auto;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease-in-out;
+        }
+        
+
+        /* 🎆 Animated Title */
+        h2 {
+            font-weight: bold;
+            text-align: center;
+            color: #ffffff;
+            background: linear-gradient(90deg, #004aad, #5089c6);
+            padding: 12px;
+            border-radius: 10px;
+            animation: glow 3s infinite alternate;
+        }
+
+        /* ✨ Glowing Input & File Upload */
+        textarea, input[type="file"] {
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+            color: #333;
+            transition: 0.3s ease-in-out;
+        }
+
+        textarea:focus, input[type="file"]:focus {
+            box-shadow: 0 0 10px rgba(0, 162, 255, 0.8);
+        }
+
+        /* 🎨 Button Effects */
+        .btn-primary, .btn-details {
+            font-weight: bold;
+            transition: all 0.3s ease-in-out;
+            transform: scale(1);
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary:hover, .btn-details:hover {
+            transform: scale(1.05);
+            box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 🛑 Result Styling */
+        .result {
+            font-size: 22px;
+            font-weight: bold;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 20px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .safe {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #a3cfbb;
+        }
+
+        .phishing {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* 📜 Hidden Details Section */
+        .details {
+            display: none;
+            margin-top: 20px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        /* 📌 Styling for Model Confidence Breakdown */
+        .list-group-item {
+            background: #f8f9fa;
+            border: none;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .list-group-item span {
+            font-size: 18px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="d-flex justify-content-end">
+            <button id="darkModeToggle" class="btn btn-dark">🌙</button>
+        </div>
+        
+        <h2>🚀 Phishing Email Detector</h2>
+        <p class="text-center text-muted">Upload an email file OR paste the email content below.</p>
+
+        <!-- 🔹 File Upload & Text Input Form -->
+        <form method="POST" action="/predict" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label class="form-label">📩 Upload an Email File (.eml, .txt) OR Paste Email Content:</label>
+                <input type="file" class="form-control mb-2" name="file" accept=".eml,.txt">
+                <textarea class="form-control" name="email_text" rows="5" placeholder="Or paste email content here...">{{ email_text }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">🔍 Analyze Email</button>
+        </form>
+
+        {% if prediction %}
+        <div class="result mt-4 {% if is_phishing %}phishing{% else %}safe{% endif %}">
+            <p>📢 Prediction: <strong>{{ prediction }}</strong> <strong>({{ confidence }}%)</strong></p>
+        </div>
+
+        <button class="btn btn-details btn-block mt-3">🔎 View Detailed Analysis</button>
+
+        <div class="details">
+            <h4 class="text-center mt-3">📊 Model-wise Confidence Breakdown</h4>
+            <ul class="list-group">
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>📌 Logistic Regression:</span> <strong>{{ confidence_lr }}%</strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>🌲 Random Forest:</span> <strong>{{ confidence_rf }}%</strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>🚀 XGBoost:</span> <strong>{{ confidence_xgb }}%</strong>
+                </li>
+            </ul>
+        </div>
+
+        {% if top_features %}
+        <div class="details mt-4">
+            <h4 class="text-center"> Key Features Influencing Prediction</h4>
+
+            <canvas id="shapChart"></canvas>
+
+            
+        </div>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                var ctx = document.getElementById("shapChart").getContext("2d");
+
+                var featureLabels = {{ top_features | map(attribute=0) | list | tojson }};
+                var featureValues = {{ top_features | map(attribute=1) | list | tojson }};
+
+                new Chart(ctx, {
+                    type: "bar",
+                    data: {
+                        labels: featureLabels,
+                        datasets: [{
+                            label: "SHAP Impact",
+                            data: featureValues,
+                            backgroundColor: featureValues.map(value => value > 0 ? "red" : "green"),
+                            borderColor: featureValues.map(value => value > 0 ? "darkred" : "darkgreen"),
+                            borderWidth: 1
+                        }]
+                    }
+                });
+            });
+        </script>
+        {% endif %}
+        {% endif %}
+    </div>
+
+    <script>
+        $(document).ready(function(){
+            $(".btn-details").click(function(){
+                $(".details").slideToggle();
+            });
+        });
+    </script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const toggleButton = document.getElementById("darkModeToggle");
+        const body = document.body;
+
+        // Function to update button text based on mode
+        function updateButtonText() {
+            if (body.classList.contains("dark-mode")) {
+                toggleButton.textContent = "☀";
+            } else {
+                toggleButton.textContent = "🌙";
+            }
+        }
+
+        // Check for stored dark mode preference and apply it
+        if (localStorage.getItem("dark-mode") === "enabled") {
+            body.classList.add("dark-mode");
+            updateButtonText();
+        }
+
+        toggleButton.addEventListener("click", function() {
+            body.classList.toggle("dark-mode");
+
+            // Store user preference
+            if (body.classList.contains("dark-mode")) {
+                localStorage.setItem("dark-mode", "enabled");
+            } else {
+                localStorage.setItem("dark-mode", "disabled");
+            }
+
+            // Update button text
+            updateButtonText();
+        });
+    });
+</script>
+
+
+</body>
+</html>
